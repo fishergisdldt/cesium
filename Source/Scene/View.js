@@ -19,6 +19,7 @@ import PickFramebuffer from "./PickFramebuffer.js";
 import SceneFramebuffer from "./SceneFramebuffer.js";
 import SceneMode from "./SceneMode.js";
 import ShadowMap from "./ShadowMap.js";
+import TranslucentTileClassification from "./TranslucentTileClassification.js";
 
 function CommandExtent() {
   this.command = undefined;
@@ -58,6 +59,9 @@ function View(scene, camera, viewport) {
   this.globeDepth = globeDepth;
   this.globeTranslucencyFramebuffer = new GlobeTranslucencyFramebuffer();
   this.oit = oit;
+  this.translucentTileClassification = new TranslucentTileClassification(
+    context
+  );
   this.pickDepths = [];
   this.debugGlobeDepths = [];
   this.frustumCommandsList = [];
@@ -125,6 +129,9 @@ function updateFrustums(view, scene, near, far) {
     : scene.farToNearRatio;
   var is2D = scene.mode === SceneMode.SCENE2D;
   var nearToFarDistance2D = scene.nearToFarDistance2D;
+
+  // Extend the far plane slightly further to prevent geometry clipping against the far plane.
+  far *= 1.0 + CesiumMath.EPSILON2;
 
   // The computed near plane must be between the user defined near and far planes.
   // The computed far plane must between the user defined far and computed near.
@@ -408,6 +415,9 @@ View.prototype.destroy = function () {
     this.sceneFramebuffer && this.sceneFramebuffer.destroy();
   this.globeDepth = this.globeDepth && this.globeDepth.destroy();
   this.oit = this.oit && this.oit.destroy();
+  this.translucentTileClassification =
+    this.translucentTileClassification &&
+    this.translucentTileClassification.destroy();
   this.globeTranslucencyFramebuffer =
     this.globeTranslucencyFramebuffer &&
     this.globeTranslucencyFramebuffer.destroy();
